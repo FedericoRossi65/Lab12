@@ -1,9 +1,16 @@
 import networkx as nx
+from database.dao import DAO
+
 
 class Model:
     def __init__(self):
         """Definire le strutture dati utili"""
-        # TODO
+        self.G = nx.Graph()
+        self._nodes = None
+
+        self._rifugi = {}
+        for r in DAO.get_rifugio():
+            self._rifugi[r.id] = r #id --> Nome
 
     def build_weighted_graph(self, year: int):
         """
@@ -11,7 +18,57 @@ class Model:
         come argomento.
         Il peso del grafo è dato dal prodotto "distanza * fattore_difficolta"
         """
-        # TODO
+        # 1. Pulizia: Se il grafo esiste già, lo svuoto
+        self.G.clear()
+        self._nodes = set()
+
+
+        # 2. Recupero tutti i rifugi (nodi) dal DB
+        all_rifugi = DAO.get_rifugio()
+
+        # 3. Aggiungo i nodi al grafo
+        for rifugio in all_rifugi:
+            # Salvo nella mappa per recuperare l'oggetto dato l'ID
+            self._nodes.add(rifugio.nome)
+            # Aggiungo il nodo al grafo (passo l'intero oggetto)
+            self.G.add_node(rifugio)
+
+        # 4. Recupero tutte le tratte (archi potenziali)
+        all_connessioni = DAO.get_connesione()
+
+        # 5. Aggiungo gli archi
+        peso = None
+        for c in all_connessioni:
+            # Controllo che entrambi i rifugi esistano (sicurezza)
+            if c.anno <= int(year):#condizione per aggiungere i nodi
+                r1 = c.r1
+                r2 = c.r2
+
+                if r1 in self._rifugi and r2 in self._rifugi:
+                    u = self._rifugi[r1]
+                    v = self._rifugi[r2]
+                    if c.difficolta == 'facile':
+                        peso = float(c.distanza) * 1
+                    elif c.difficolta == 'media':
+                        peso = float(c.distanza) * 1.5
+                    elif c.difficolta == 'difficile':
+                        peso = float(c.distanza) * 2
+
+
+                    self.G.add_edge(u, v, weight=peso)
+
+        # 6. PULIZIA DEL GRAFO
+        # "I nodi rappresentano i rifugi collegati da almeno un sentiero fino all'anno selezionato."
+        # Questo significa rimuovere i nodi con grado 0.
+        # Copia dei nodi da rimuovere
+        nodi_isolati = [node for node in self.G.nodes() if self.G.degree(node) == 0]
+        self.G.remove_nodes_from(nodi_isolati)
+
+        # Aggiorno la lista interna dei nodi attivi
+        self._nodes = set(self.G.nodes())
+
+
+
 
     def get_edges_weight_min_max(self):
         """
@@ -19,7 +76,12 @@ class Model:
         :return: il peso minimo degli archi nel grafo
         :return: il peso massimo degli archi nel grafo
         """
-        # TODO
+        all_weight = [s[2]['weight'] for s in self.G.edges(data= True)]
+        min_weight = min(all_weight)
+        max_weight = max(all_weight)
+        return min_weight, max_weight
+
+
 
     def count_edges_by_threshold(self, soglia):
         """
@@ -28,7 +90,21 @@ class Model:
         :return minori: archi con peso < soglia
         :return maggiori: archi con peso > soglia
         """
-        # TODO
+        minori = []
+        maggiori = []
+        all_edges = self.G.edges(data= True)
+        for edge in all_edges:
+            if edge[2]['weight'] < soglia:
+                minori.append(edge)
+            elif edge[2]['weight'] > soglia:
+                maggiori.append(edge)
+        return len(minori), len(maggiori)
+
+
 
     """Implementare la parte di ricerca del cammino minimo"""
-    # TODO
+    #def get_minimo_cammino_bfs(self,start):
+
+
+
+
