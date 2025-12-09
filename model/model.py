@@ -103,7 +103,58 @@ class Model:
 
 
     """Implementare la parte di ricerca del cammino minimo"""
-    #def get_minimo_cammino_bfs(self,start):
+    def get_minimo_cammino_bfs(self,S):
+        # creazione di un grafo 'temporaneo' con solo i archi e nodi che rispettano la soglia
+        Gf = nx.Graph()
+        Gf.add_nodes_from(self.G.nodes(data=True))
+
+        for u, v, data in self.G.edges(data=True):
+            if data["weight"] > S:
+                Gf.add_edge(u, v, weight=data["weight"])
+        miglior_cammino = None
+        miglior_peso = float("inf")  # peso iniziale molto grande
+
+        # provo tutte le possibili coppie di nodi (nodo_partenza, nodo_arrivo)
+        for nodo_partenza in Gf.nodes:
+            for nodo_arrivo in Gf.nodes:
+                if nodo_partenza == nodo_arrivo:
+                    continue  # non considero cammini dallo stesso nodo a se stesso
+
+                try:
+                    # calcolo il cammino minimo tra partenza e arrivo
+                    cammino = nx.dijkstra_path(
+                        Gf,
+                        nodo_partenza,
+                        nodo_arrivo,
+                        weight="weight"
+                    )
+
+                    # controllo che il cammino abbia almeno 3 nodi --> 2 archi
+                    if len(cammino) < 3:
+                        continue
+
+                    # calcolo il peso totale del cammino
+                    peso = nx.path_weight(Gf, cammino, weight="weight")
+
+                    # se è il migliore finora, lo salvo
+                    if peso < miglior_peso:
+                        miglior_peso = peso
+                        miglior_cammino = cammino
+
+                except nx.NetworkXNoPath:
+                    # non esiste un cammino valido tra questa coppia → ignoro
+                    pass
+        '''coppie = []
+    for i in range(len(miglior_cammino) - 1):
+        u = miglior_cammino[i]
+        v = miglior_cammino[i+1]
+        coppie.append((u, v))
+
+    return coppie'''
+        if miglior_cammino is None:
+            return []  # nessun cammino ha rispettato i vincoli
+
+        return miglior_cammino
 
 
 

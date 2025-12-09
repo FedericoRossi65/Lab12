@@ -47,5 +47,11 @@ class Controller:
         self._view.page.update()
 
     """Implementare la parte di ricerca del cammino minimo"""
-    # TODO
+    def handle_cammino_minimo(self, e):
+        soglia = float(self._view.txt_soglia.value)
+        lista_cammini = self._model.get_minimo_cammino_bfs(soglia)
+        self._view.lista_visualizzazione_3.controls.clear()
+        self._view.lista_visualizzazione_3.controls.append(ft.Text(f'Camminio minimo:{lista_cammini}'))
+        self._view.update()
+
 
