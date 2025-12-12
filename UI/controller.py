@@ -51,7 +51,10 @@ class Controller:
         soglia = float(self._view.txt_soglia.value)
         lista_cammini = self._model.get_minimo_cammino_bfs(soglia)
         self._view.lista_visualizzazione_3.controls.clear()
-        self._view.lista_visualizzazione_3.controls.append(ft.Text(f'Camminio minimo:{lista_cammini}'))
+        self._view.lista_visualizzazione_3.controls.append(ft.Text(f"Cammino minimo:"))
+        for lista in lista_cammini:
+
+            self._view.lista_visualizzazione_3.controls.append(ft.Text(f"[{lista[0]['id']}] {lista[0]['nome']} ({lista[0]['localita']}) --> [{lista[1]['id']}] {lista[1]['nome']}  ({lista[1]['localita']}))"))
         self._view.update()
 
 

@@ -144,17 +144,16 @@ class Model:
                 except nx.NetworkXNoPath:
                     # non esiste un cammino valido tra questa coppia → ignoro
                     pass
-        '''coppie = []
-    for i in range(len(miglior_cammino) - 1):
-        u = miglior_cammino[i]
-        v = miglior_cammino[i+1]
-        coppie.append((u, v))
+        coppie = []
+        for i in range(len(miglior_cammino) - 1):
+                u = miglior_cammino[i]
+                v = miglior_cammino[i+1]
+                coppie.append([{'id': u.id, 'nome': u.nome, 'localita': u.localita},
+                              {'id':v.id,'nome':v.nome,'localita':v.localita}])
 
-    return coppie'''
-        if miglior_cammino is None:
-            return []  # nessun cammino ha rispettato i vincoli
 
-        return miglior_cammino
+        return coppie
+
 
 
 
